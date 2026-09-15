@@ -175,6 +175,9 @@
     display: flex;
     align-items: center;
   }
+  #locker-app .status-text{
+    display: block;
+  }
   #locker-app .status .num{
     font-family: "IBM Plex Mono", monospace;
     color: var(--accent-strong);
@@ -387,7 +390,7 @@
     </div>
 
     <div class="controls">
-      <div class="status" id="status">Student <span class="num" id="curStudent">1</span> of 50 is next</div>
+      <div class="status" id="status"><span class="status-text">Student <span class="num">1</span> of 50 is next</span></div>
       <div id="statusMeasure" aria-hidden="true"></div>
       <div class="buttons">
         <button id="stepBtn" type="button">Step</button>
@@ -426,6 +429,10 @@
   var GRID_GAP_REM = 0.5;
   var WORST_CASE_FACTORS = '1, 2, 3, 4, 6, 8, 12, 16, 24, 48';
   var DONE_MESSAGE_HTML = 'All 50 done — only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
+
+  function statusHTML(inner){
+    return '<span class="status-text">' + inner + '</span>';
+  }
 
   var app = document.getElementById('locker-app');
   var remSentinelEl = document.getElementById('remSentinel');
@@ -541,7 +548,7 @@
     if (!sampleWidth) return;
     statusMeasureEl.style.width = sampleWidth + 'px';
     statusMeasureEl.className = statusEl.className;
-    statusMeasureEl.innerHTML = DONE_MESSAGE_HTML;
+    statusMeasureEl.innerHTML = statusHTML(DONE_MESSAGE_HTML);
     var h = statusMeasureEl.getBoundingClientRect().height;
     if (h) app.style.setProperty('--status-h', h + 'px');
   }
@@ -636,13 +643,13 @@
 
   function updateStatus(){
     if (currentStudent >= N){
-      statusEl.innerHTML = DONE_MESSAGE_HTML;
+      statusEl.innerHTML = statusHTML(DONE_MESSAGE_HTML);
       stepBtn.disabled = true;
       playBtn.disabled = true;
       playBtn.textContent = 'Play';
     } else {
       var phase = playing ? 'is walking the hall…' : (walkIndex > 0 ? 'is paused partway through' : 'is next');
-      statusEl.innerHTML = 'Student <span class="num" id="curStudent">' + (currentStudent + 1) + '</span> ' + phase;
+      statusEl.innerHTML = statusHTML('Student <span class="num">' + (currentStudent + 1) + '</span> ' + phase);
       stepBtn.disabled = false;
       playBtn.disabled = false;
     }
@@ -748,8 +755,8 @@
 
       if (walkIndex >= mult.length && playing && token === playToken){
         hideWalkerGlyph();
-        statusEl.innerHTML = 'Student <span class="num">' + s + '</span> finished' +
-          (s < N ? ' — next up: student ' + (s + 1) + '…' : '…');
+        statusEl.innerHTML = statusHTML('Student <span class="num">' + s + '</span> finished' +
+          (s < N ? ' — next up: student ' + (s + 1) + '…' : '…'));
         await sleep(getSpeed() * 5);
         if (!playing || token !== playToken) break;
         currentStudent = s;
