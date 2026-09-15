@@ -400,7 +400,7 @@
   var MIN_DOOR_REM = 3;
   var GRID_GAP_REM = 0.5;
   var WORST_CASE_FACTORS = '1, 2, 3, 4, 6, 8, 12, 16, 24, 48';
-  var DONE_MESSAGE_HTML = 'All 50 done — only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
+  var DONE_MESSAGE_HTML = 'All 50 done \u2014 only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
 
   function statusHTML(inner){
     return '<span class="status-text">' + inner + '</span>';
@@ -437,7 +437,7 @@
   function createStudentSpan(s){
     var span = document.createElement('span');
     span.className = 'student';
-    span.textContent = '🧍';
+    span.textContent = '\uD83E\uDDCD';
     span.title = 'Student ' + s;
     span.dataset.n = s;
     return span;
@@ -456,7 +456,7 @@
       for (var m = 1; m <= N; m++){
         var mSpan = document.createElement('span');
         mSpan.className = 'student';
-        mSpan.textContent = '🧍';
+        mSpan.textContent = '\uD83E\uDDCD';
         queueMeasureEl.appendChild(mSpan);
       }
     }
@@ -583,7 +583,7 @@
     var refs = lockerEls[n];
     refs.cell.classList.toggle('open', rec.open);
     refs.cell.classList.toggle('closed', !rec.open);
-    refs.by.textContent = rec.factors.length ? rec.factors.join(', ') : '—';
+    refs.by.textContent = rec.factors.length ? rec.factors.join(', ') : '\u2014';
   }
 
   function renderAllLockers(){
@@ -620,7 +620,7 @@
       playBtn.disabled = true;
       playBtn.textContent = 'Play';
     } else {
-      var phase = playing ? 'is walking the hall…' : (walkIndex > 0 ? 'is paused partway through' : 'is next');
+      var phase = playing ? 'is walking the hall\u2026' : (walkIndex > 0 ? 'is paused partway through' : 'is next');
       statusEl.innerHTML = statusHTML('Student <span class="num">' + (currentStudent + 1) + '</span> ' + phase);
       stepBtn.disabled = false;
       playBtn.disabled = false;
@@ -728,7 +728,7 @@
       if (walkIndex >= mult.length && playing && token === playToken){
         hideWalkerGlyph();
         statusEl.innerHTML = statusHTML('Student <span class="num">' + s + '</span> finished' +
-          (s < N ? ' — next up: student ' + (s + 1) + '…' : '…'));
+          (s < N ? ' \u2014 next up: student ' + (s + 1) + '\u2026' : '\u2026'));
         await sleep(getSpeed() * 5);
         if (!playing || token !== playToken) break;
         currentStudent = s;
