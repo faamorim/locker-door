@@ -428,6 +428,7 @@
 (function(){
   var N = 50;
   var MIN_DOOR_REM = 3;
+  var MIN_DOOR_REM_COMPACT = 1.2;
   var GRID_GAP_REM = 0.5;
   var DONE_MESSAGE_HTML = 'All 50 done \u2014 only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
 
@@ -514,7 +515,7 @@
   function computeColumns(){
     var r = remPx();
     var gapPx = GRID_GAP_REM * r;
-    var minDoorPx = MIN_DOOR_REM * r;
+    var minDoorPx = (app.classList.contains('compact') ? MIN_DOOR_REM_COMPACT : MIN_DOOR_REM) * r;
     var availablePx = gridEl.getBoundingClientRect().width;
     if (!availablePx) return 10;
 
@@ -802,6 +803,7 @@
   });
   compactToggle.addEventListener('change', function(){
     app.classList.toggle('compact', compactToggle.checked);
+    applyColumns();
   });
 
   if (window.ResizeObserver){
