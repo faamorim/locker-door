@@ -375,7 +375,7 @@
     </div>
 
     <div class="controls jump-controls">
-      <label class="jump-label" for="jumpRange">Jump straight to the state after <strong id="jumpValue">0</strong> student<span id="jumpPlural">s</span></label>
+      <label class="jump-label" for="jumpRange"><strong id="jumpValue">0</strong> student<span id="jumpPlural">s</span> <span id="jumpVerb">have</span> gone</label>
       <input type="range" id="jumpRange" min="0" max="50" value="0" step="1">
     </div>
 
@@ -411,6 +411,7 @@
   var jumpRange = document.getElementById('jumpRange');
   var jumpValueEl = document.getElementById('jumpValue');
   var jumpPluralEl = document.getElementById('jumpPlural');
+  var jumpVerbEl = document.getElementById('jumpVerb');
 
   var lockers, lockerEls, queueEls, currentStudent, walkIndex, playing, playToken, dequeued, lastVisited;
 
@@ -561,6 +562,7 @@
     jumpRange.value = currentStudent;
     jumpValueEl.textContent = currentStudent;
     jumpPluralEl.textContent = currentStudent === 1 ? '' : 's';
+    jumpVerbEl.textContent = currentStudent === 1 ? 'has' : 'have';
   }
 
   function hideWalker(){
