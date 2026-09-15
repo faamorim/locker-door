@@ -205,6 +205,17 @@
   }
   #locker-app .speed input{ accent-color: var(--accent-strong); }
 
+  #locker-app .compact-toggle{
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #locker-app .compact-toggle input{ accent-color: var(--accent-strong); }
+
   #locker-app .jump-controls{
     flex-direction: column;
     align-items: stretch;
@@ -235,12 +246,6 @@
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     gap: 0.5rem;
-  }
-  #locker-app .locker{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
   }
   #locker-app .locker-frame{
     width: 100%;
@@ -274,7 +279,7 @@
   #locker-app .locker-door .handle{
     position: absolute;
     right: 8%;
-    top: 45%;
+    bottom: 6%;
     width: 0.375rem;
     height: 0.375rem;
     border-radius: 50%;
@@ -283,29 +288,50 @@
   #locker-app .locker.visiting .locker-frame{
     box-shadow: 0 0 0 2px var(--accent), 0 0 10px 1px color-mix(in srgb, var(--accent) 60%, transparent);
   }
+  #locker-app .locker-label{
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    padding: 0.2rem;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
+  #locker-app .locker.open .locker-label{
+    color: var(--accent);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  }
   #locker-app .locker-number{
     font-family: "IBM Plex Mono", monospace;
-    font-size: 0.6875rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: var(--ink-muted);
+    line-height: 1;
   }
-  #locker-app .locker.open .locker-number{ color: var(--accent-strong); }
   #locker-app .locker-by{
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.5rem;
-    line-height: 1.25;
-    color: var(--ink-muted);
+    line-height: 1.15;
     text-align: center;
-    height: var(--locker-by-h, 3.625rem);
     overflow: hidden;
     word-break: break-word;
   }
-  #locker-app #byMeasure{
-    position: absolute;
-    visibility: hidden;
-    height: auto;
-    pointer-events: none;
+  #locker-app .sqrt-factor{
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 1.5px;
+  }
+  #locker-app.compact .locker-by{
+    display: none;
+  }
+  #locker-app.compact .locker-number{
+    font-size: 0.875rem;
   }
 
   #locker-app .walker{
@@ -373,6 +399,10 @@
         Speed
         <input type="range" id="speedRange" min="60" max="500" value="220" step="20">
       </label>
+      <label class="compact-toggle">
+        <input type="checkbox" id="compactToggle">
+        Compact (numbers only)
+      </label>
     </div>
 
     <div class="controls jump-controls">
@@ -383,13 +413,13 @@
     <div class="grid-wrap" id="gridWrap">
       <div class="grid" id="grid"></div>
       <div class="walker" id="walker" hidden>&#128694;</div>
-      <div class="locker-by" id="byMeasure" aria-hidden="true"></div>
     </div>
 
     <p class="legend">
       <span><span class="swatch open"></span>Open</span>
       <span><span class="swatch"></span>Closed</span>
-      <span>Numbers under each door: which students toggled it</span>
+      <span>Numbers on each door: which students toggled it</span>
+      <span>Underlined factor: its square root</span>
     </p>
   </div>
 </div>
@@ -399,7 +429,6 @@
   var N = 50;
   var MIN_DOOR_REM = 3;
   var GRID_GAP_REM = 0.5;
-  var WORST_CASE_FACTORS = '1, 2, 3, 4, 6, 8, 12, 16, 24, 48';
   var DONE_MESSAGE_HTML = 'All 50 done \u2014 only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
 
   function statusHTML(inner){
@@ -413,7 +442,6 @@
   var gridEl = document.getElementById('grid');
   var gridWrap = document.getElementById('gridWrap');
   var walkerEl = document.getElementById('walker');
-  var byMeasureEl = document.getElementById('byMeasure');
   var statusEl = document.getElementById('status');
   var statusMeasureEl = document.getElementById('statusMeasure');
   var waitingCountEl = document.getElementById('waitingCount');
@@ -421,6 +449,7 @@
   var playBtn = document.getElementById('playBtn');
   var resetBtn = document.getElementById('resetBtn');
   var speedRange = document.getElementById('speedRange');
+  var compactToggle = document.getElementById('compactToggle');
   var jumpRange = document.getElementById('jumpRange');
   var jumpValueEl = document.getElementById('jumpValue');
   var jumpPluralEl = document.getElementById('jumpPlural');
@@ -505,16 +534,6 @@
     gridEl.style.gridTemplateColumns = 'repeat(' + computeColumns() + ', 1fr)';
   }
 
-  function measureLockerByHeight(){
-    if (!lockerEls || !lockerEls[1]) return;
-    var sampleWidth = lockerEls[1].cell.getBoundingClientRect().width;
-    if (!sampleWidth) return;
-    byMeasureEl.style.width = sampleWidth + 'px';
-    byMeasureEl.textContent = WORST_CASE_FACTORS;
-    var h = byMeasureEl.getBoundingClientRect().height;
-    if (h) app.style.setProperty('--locker-by-h', h + 'px');
-  }
-
   function measureStatusHeight(){
     var sampleWidth = statusEl.getBoundingClientRect().width;
     if (!sampleWidth) return;
@@ -527,7 +546,6 @@
 
   function recomputeResponsiveLayout(){
     applyColumns();
-    measureLockerByHeight();
     measureStatusHeight();
     measureQueueHeight();
   }
@@ -552,16 +570,18 @@
       frame.appendChild(inside);
       frame.appendChild(door);
 
+      var label = document.createElement('div');
+      label.className = 'locker-label';
       var num = document.createElement('div');
       num.className = 'locker-number';
       num.textContent = String(n).padStart(2, '0');
-
       var by = document.createElement('div');
       by.className = 'locker-by';
+      label.appendChild(num);
+      label.appendChild(by);
+      frame.appendChild(label);
 
       cell.appendChild(frame);
-      cell.appendChild(num);
-      cell.appendChild(by);
       gridEl.appendChild(cell);
       lockerEls[n] = { cell: cell, by: by, frame: frame };
     }
@@ -583,7 +603,14 @@
     var refs = lockerEls[n];
     refs.cell.classList.toggle('open', rec.open);
     refs.cell.classList.toggle('closed', !rec.open);
-    refs.by.textContent = rec.factors.length ? rec.factors.join(', ') : '\u2014';
+    if (!rec.factors.length){
+      refs.by.textContent = '\u2014';
+      return;
+    }
+    var sqrtN = Math.sqrt(n);
+    refs.by.innerHTML = rec.factors.map(function(d){
+      return d === sqrtN ? '<span class="sqrt-factor">' + d + '</span>' : String(d);
+    }).join(', ');
   }
 
   function renderAllLockers(){
@@ -772,6 +799,9 @@
   resetBtn.addEventListener('click', onReset);
   jumpRange.addEventListener('input', function(){
     jumpTo(parseInt(jumpRange.value, 10));
+  });
+  compactToggle.addEventListener('change', function(){
+    app.classList.toggle('compact', compactToggle.checked);
   });
 
   if (window.ResizeObserver){
