@@ -339,7 +339,7 @@
     top: 0;
     left: 0;
     font-size: 1.25rem;
-    transform: translate(-50%, -120%);
+    transform: translate(-50%, -105%);
     transition: left .22s ease, top .22s ease;
     pointer-events: none;
     z-index: 5;
@@ -545,10 +545,17 @@
     if (h) app.style.setProperty('--status-h', h + 'px');
   }
 
+  function reportHeightToParent(){
+    if (window.parent === window) return;
+    var height = Math.ceil(app.getBoundingClientRect().height);
+    window.parent.postMessage({ type: 'locker-widget-resize', height: height }, '*');
+  }
+
   function recomputeResponsiveLayout(){
     applyColumns();
     measureStatusHeight();
     measureQueueHeight();
+    reportHeightToParent();
   }
 
   function buildGrid(){
@@ -674,7 +681,7 @@
     var wrapRect = gridWrap.getBoundingClientRect();
     var lockRect = lockerEls[n].cell.getBoundingClientRect();
     var x = lockRect.left - wrapRect.left + lockRect.width / 2;
-    var y = lockRect.top - wrapRect.top;
+    var y = lockRect.bottom - wrapRect.top;
     walkerEl.style.left = x + 'px';
     walkerEl.style.top = y + 'px';
     walkerEl.hidden = false;
@@ -824,5 +831,9 @@
   renderAllLockers();
   updateStatus();
   recomputeResponsiveLayout();
+
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(recomputeResponsiveLayout);
+  }
 })();
 </script>
