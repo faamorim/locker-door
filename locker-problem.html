@@ -109,6 +109,9 @@
     color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
   }
+  #locker-app .queue-frame{
+    position: relative;
+  }
   #locker-app .queue{
     display: flex;
     flex-wrap: wrap;
@@ -117,6 +120,14 @@
     align-items: center;
     border-bottom: 2px dashed var(--line);
     padding-bottom: 12px;
+  }
+  #locker-app #queueMeasure{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
   #locker-app .student{
     font-size: 19px;
@@ -324,7 +335,10 @@
         <span class="hallway-label">Waiting in line</span>
         <span class="waiting-count"><span id="waitingCount">50</span> left</span>
       </div>
-      <div class="queue" id="queue"></div>
+      <div class="queue-frame">
+        <div class="queue" id="queue"></div>
+        <div class="queue" id="queueMeasure" aria-hidden="true"></div>
+      </div>
     </div>
 
     <div class="controls">
@@ -358,6 +372,7 @@
   var N = 50;
   var app = document.getElementById('locker-app');
   var queueEl = document.getElementById('queue');
+  var queueMeasureEl = document.getElementById('queueMeasure');
   var gridEl = document.getElementById('grid');
   var gridWrap = document.getElementById('gridWrap');
   var walkerEl = document.getElementById('walker');
@@ -389,6 +404,20 @@
       queueEl.appendChild(span);
       queueEls[s] = span;
     }
+
+    if (!queueMeasureEl.childNodes.length){
+      for (var m = 1; m <= N; m++){
+        var mSpan = document.createElement('span');
+        mSpan.className = 'student';
+        mSpan.textContent = '🧍';
+        queueMeasureEl.appendChild(mSpan);
+      }
+    }
+    measureQueueHeight();
+  }
+
+  function measureQueueHeight(){
+    queueEl.style.minHeight = queueMeasureEl.offsetHeight + 'px';
   }
 
   function buildGrid(){
@@ -493,6 +522,10 @@
     lastVisited = null;
   }
 
+  function hideWalkerGlyph(){
+    walkerEl.hidden = true;
+  }
+
   function moveWalkerTo(n){
     var wrapRect = gridWrap.getBoundingClientRect();
     var lockRect = lockerEls[n].cell.getBoundingClientRect();
@@ -507,7 +540,12 @@
   }
 
   function sleep(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
-  function getSpeed(){ return parseInt(speedRange.value, 10); }
+  function getSpeed(){
+    var min = parseInt(speedRange.min, 10);
+    var max = parseInt(speedRange.max, 10);
+    var val = parseInt(speedRange.value, 10);
+    return (min + max) - val; // slider right = higher value = shorter delay = faster
+  }
 
   function finishCurrentStudentInstant(){
     if (currentStudent >= N) return;
@@ -551,6 +589,11 @@
       }
 
       if (walkIndex >= mult.length && playing && token === playToken){
+        hideWalkerGlyph();
+        statusEl.innerHTML = 'Student <span class="num">' + s + '</span> finished' +
+          (s < N ? ' — next up: student ' + (s + 1) + '…' : '…');
+        await sleep(getSpeed() * 5);
+        if (!playing || token !== playToken) break;
         currentStudent = s;
         walkIndex = 0;
         hideWalker();
@@ -590,6 +633,12 @@
   stepBtn.addEventListener('click', onStep);
   playBtn.addEventListener('click', onPlayToggle);
   resetBtn.addEventListener('click', onReset);
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(measureQueueHeight, 150);
+  });
 
   buildGrid();
   buildQueue();
