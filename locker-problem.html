@@ -1,0 +1,600 @@
+<title>The Locker Room Proof</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg: #E9EDEC;
+    --surface: #FFFFFF;
+    --ink: #1C2530;
+    --ink-muted: #5B6B72;
+    --line: #C9D2D1;
+    --locker-closed: #3D6C86;
+    --locker-closed-edge: #2C5064;
+    --locker-inside: #12181C;
+    --accent: #D79A3B;
+    --accent-strong: #B97D22;
+    --accent-ink: #3A2A0E;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #10151A;
+      --surface: #182029;
+      --ink: #E7ECEE;
+      --ink-muted: #93A3AA;
+      --line: #2B363E;
+      --locker-closed: #5D879F;
+      --locker-closed-edge: #446378;
+      --locker-inside: #05080A;
+      --accent: #E7B65C;
+      --accent-strong: #F2C877;
+      --accent-ink: #2A1E08;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #10151A;
+    --surface: #182029;
+    --ink: #E7ECEE;
+    --ink-muted: #93A3AA;
+    --line: #2B363E;
+    --locker-closed: #5D879F;
+    --locker-closed-edge: #446378;
+    --locker-inside: #05080A;
+    --accent: #E7B65C;
+    --accent-strong: #F2C877;
+    --accent-ink: #2A1E08;
+  }
+
+  #locker-app, #locker-app *{ box-sizing: border-box; }
+  #locker-app{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    padding: 28px 16px 40px;
+    max-width: 100%;
+  }
+  #locker-app .stage{
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  #locker-app .eyebrow{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  #locker-app h1{
+    font-family: "Archivo Black", "IBM Plex Sans", sans-serif;
+    font-size: clamp(26px, 5vw, 36px);
+    line-height: 1.05;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  #locker-app .lede{
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 60ch;
+  }
+
+  #locker-app .hallway{
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface) 70%, color-mix(in srgb, var(--locker-closed) 12%, var(--surface)) 100%);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+  }
+  #locker-app .hallway-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  #locker-app .hallway-label{
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  #locker-app .waiting-count{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  #locker-app .queue{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 34px;
+    align-items: center;
+    border-bottom: 2px dashed var(--line);
+    padding-bottom: 12px;
+  }
+  #locker-app .student{
+    font-size: 19px;
+    line-height: 1;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    transition: opacity .32s ease, transform .32s ease;
+    filter: grayscale(0);
+  }
+  #locker-app .student.next{
+    transform: scale(1.18);
+  }
+  #locker-app .student.leaving{
+    opacity: 0;
+    transform: translateX(-14px) scale(0.7);
+  }
+
+  #locker-app .controls{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  #locker-app .status{
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1 1 220px;
+  }
+  #locker-app .status .num{
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--accent-strong);
+  }
+  #locker-app .buttons{
+    display: flex;
+    gap: 8px;
+  }
+  #locker-app button{
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  }
+  #locker-app button:hover:not(:disabled){ transform: translateY(-1px); }
+  #locker-app button:active:not(:disabled){ transform: translateY(0); }
+  #locker-app button:focus-visible{ outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+  #locker-app button:disabled{ opacity: 0.45; cursor: default; }
+  #locker-app #playBtn{
+    background: var(--accent);
+    border-color: var(--accent-strong);
+    color: var(--accent-ink);
+    box-shadow: 0 2px 0 var(--accent-strong);
+  }
+  #locker-app #playBtn:active:not(:disabled){ box-shadow: none; }
+  #locker-app .speed{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  #locker-app .speed input{ accent-color: var(--accent-strong); }
+
+  #locker-app .grid-wrap{
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  #locker-app .grid{
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 640px){
+    #locker-app .grid{ grid-template-columns: repeat(5, 1fr); }
+  }
+  #locker-app .locker{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  #locker-app .locker-frame{
+    width: 100%;
+    aspect-ratio: 5 / 6;
+    max-width: 64px;
+    position: relative;
+    perspective: 240px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--locker-inside);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  #locker-app .locker-inside{
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(180deg, var(--locker-inside), var(--locker-inside) 60%, color-mix(in srgb, var(--locker-inside) 60%, white) 61%, var(--locker-inside) 64%);
+  }
+  #locker-app .locker-door{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, var(--locker-closed) 0%, var(--locker-closed-edge) 100%);
+    transform-origin: left center;
+    transform: rotateY(0deg);
+    transition: transform .32s cubic-bezier(.4,0,.2,1), background .32s ease;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  #locker-app .locker.open .locker-door{
+    transform: rotateY(-62deg);
+    background: linear-gradient(115deg, color-mix(in srgb, var(--locker-closed) 70%, white) 0%, var(--locker-closed) 100%);
+  }
+  #locker-app .locker-door .handle{
+    position: absolute;
+    right: 8%;
+    top: 45%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  #locker-app .locker.visiting .locker-frame{
+    box-shadow: 0 0 0 2px var(--accent), 0 0 10px 1px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  #locker-app .locker-number{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+  }
+  #locker-app .locker.open .locker-number{ color: var(--accent-strong); }
+  #locker-app .locker-by{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 8.5px;
+    line-height: 1.25;
+    color: var(--ink-muted);
+    text-align: center;
+    min-height: 22px;
+    word-break: break-word;
+  }
+
+  #locker-app .walker{
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 20px;
+    transform: translate(-50%, -120%);
+    transition: left .22s ease, top .22s ease;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  #locker-app .legend{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+  #locker-app .swatch{
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: -1px;
+    background: var(--locker-closed);
+  }
+  #locker-app .swatch.open{
+    background: color-mix(in srgb, var(--locker-closed) 70%, white);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #locker-app *{ transition: none !important; }
+  }
+</style>
+
+<div id="locker-app">
+  <div class="stage">
+    <header>
+      <p class="eyebrow">1000 students &middot; 1000 lockers &middot; here, the first 50</p>
+      <h1>Which doors stay open?</h1>
+      <p class="lede">Every student <em>s</em> walks the hall and flips every locker that's a multiple of <em>s</em>. Step through one student at a time, or press Play and watch them do it.</p>
+    </header>
+
+    <div class="hallway">
+      <div class="hallway-head">
+        <span class="hallway-label">Waiting in line</span>
+        <span class="waiting-count"><span id="waitingCount">50</span> left</span>
+      </div>
+      <div class="queue" id="queue"></div>
+    </div>
+
+    <div class="controls">
+      <div class="status" id="status">Student <span class="num" id="curStudent">1</span> of 50 is next</div>
+      <div class="buttons">
+        <button id="stepBtn" type="button">Step</button>
+        <button id="playBtn" type="button">Play</button>
+        <button id="resetBtn" type="button">Reset</button>
+      </div>
+      <label class="speed">
+        Speed
+        <input type="range" id="speedRange" min="60" max="500" value="220" step="20">
+      </label>
+    </div>
+
+    <div class="grid-wrap" id="gridWrap">
+      <div class="grid" id="grid"></div>
+      <div class="walker" id="walker" hidden>&#128694;</div>
+    </div>
+
+    <p class="legend">
+      <span><span class="swatch open"></span>Open</span>
+      <span><span class="swatch"></span>Closed</span>
+      <span>Numbers under each door: which students toggled it</span>
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var N = 50;
+  var app = document.getElementById('locker-app');
+  var queueEl = document.getElementById('queue');
+  var gridEl = document.getElementById('grid');
+  var gridWrap = document.getElementById('gridWrap');
+  var walkerEl = document.getElementById('walker');
+  var statusEl = document.getElementById('status');
+  var curStudentEl = document.getElementById('curStudent');
+  var waitingCountEl = document.getElementById('waitingCount');
+  var stepBtn = document.getElementById('stepBtn');
+  var playBtn = document.getElementById('playBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var speedRange = document.getElementById('speedRange');
+
+  var lockers, lockerEls, queueEls, currentStudent, walkIndex, playing, playToken, dequeued, lastVisited;
+
+  function multiplesOf(s){
+    var arr = [];
+    for (var n = s; n <= N; n += s) arr.push(n);
+    return arr;
+  }
+
+  function buildQueue(){
+    queueEl.innerHTML = '';
+    queueEls = {};
+    for (var s = 1; s <= N; s++){
+      var span = document.createElement('span');
+      span.className = 'student';
+      span.textContent = '🧍';
+      span.title = 'Student ' + s;
+      span.dataset.n = s;
+      queueEl.appendChild(span);
+      queueEls[s] = span;
+    }
+  }
+
+  function buildGrid(){
+    gridEl.innerHTML = '';
+    lockerEls = {};
+    for (var n = 1; n <= N; n++){
+      var cell = document.createElement('div');
+      cell.className = 'locker';
+      cell.dataset.n = n;
+
+      var frame = document.createElement('div');
+      frame.className = 'locker-frame';
+      var inside = document.createElement('div');
+      inside.className = 'locker-inside';
+      var door = document.createElement('div');
+      door.className = 'locker-door';
+      var handle = document.createElement('span');
+      handle.className = 'handle';
+      door.appendChild(handle);
+      frame.appendChild(inside);
+      frame.appendChild(door);
+
+      var num = document.createElement('div');
+      num.className = 'locker-number';
+      num.textContent = String(n).padStart(2, '0');
+
+      var by = document.createElement('div');
+      by.className = 'locker-by';
+
+      cell.appendChild(frame);
+      cell.appendChild(num);
+      cell.appendChild(by);
+      gridEl.appendChild(cell);
+      lockerEls[n] = { cell: cell, by: by, frame: frame };
+    }
+  }
+
+  function initState(){
+    lockers = {};
+    for (var n = 1; n <= N; n++) lockers[n] = { open: true, factors: [] };
+    currentStudent = 0;
+    walkIndex = 0;
+    playing = false;
+    playToken = 0;
+    dequeued = {};
+    lastVisited = null;
+  }
+
+  function renderLocker(n){
+    var rec = lockers[n];
+    var refs = lockerEls[n];
+    refs.cell.classList.toggle('open', rec.open);
+    refs.cell.classList.toggle('closed', !rec.open);
+    refs.by.textContent = rec.factors.length ? rec.factors.join(', ') : '—';
+  }
+
+  function renderAllLockers(){
+    for (var n = 1; n <= N; n++) renderLocker(n);
+  }
+
+  function toggleLocker(n, student){
+    lockers[n].open = !lockers[n].open;
+    lockers[n].factors.push(student);
+    renderLocker(n);
+  }
+
+  function dequeue(s){
+    if (dequeued[s]) return;
+    dequeued[s] = true;
+    var el = queueEls[s];
+    if (el){
+      el.classList.add('leaving');
+      setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 340);
+    }
+    waitingCountEl.textContent = String(N - Object.keys(dequeued).length);
+  }
+
+  function markNext(){
+    for (var s = 1; s <= N; s++){
+      if (queueEls[s]) queueEls[s].classList.toggle('next', s === currentStudent + 1);
+    }
+  }
+
+  function updateStatus(){
+    if (currentStudent >= N){
+      statusEl.innerHTML = 'All 50 done — only the <strong>perfect squares</strong> (1, 4, 9, 16, 25, 36, 49) stayed closed.';
+      stepBtn.disabled = true;
+      playBtn.disabled = true;
+      playBtn.textContent = 'Play';
+    } else {
+      var phase = playing ? 'is walking the hall…' : (walkIndex > 0 ? 'is paused partway through' : 'is next');
+      statusEl.innerHTML = 'Student <span class="num" id="curStudent">' + (currentStudent + 1) + '</span> ' + phase;
+      stepBtn.disabled = false;
+      playBtn.disabled = false;
+    }
+    markNext();
+  }
+
+  function hideWalker(){
+    walkerEl.hidden = true;
+    if (lastVisited && lockerEls[lastVisited]) lockerEls[lastVisited].cell.classList.remove('visiting');
+    lastVisited = null;
+  }
+
+  function moveWalkerTo(n){
+    var wrapRect = gridWrap.getBoundingClientRect();
+    var lockRect = lockerEls[n].cell.getBoundingClientRect();
+    var x = lockRect.left - wrapRect.left + lockRect.width / 2;
+    var y = lockRect.top - wrapRect.top;
+    walkerEl.style.left = x + 'px';
+    walkerEl.style.top = y + 'px';
+    walkerEl.hidden = false;
+    if (lastVisited && lockerEls[lastVisited]) lockerEls[lastVisited].cell.classList.remove('visiting');
+    lockerEls[n].cell.classList.add('visiting');
+    lastVisited = n;
+  }
+
+  function sleep(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+  function getSpeed(){ return parseInt(speedRange.value, 10); }
+
+  function finishCurrentStudentInstant(){
+    if (currentStudent >= N) return;
+    var s = currentStudent + 1;
+    dequeue(s);
+    var mult = multiplesOf(s);
+    for (var i = walkIndex; i < mult.length; i++) toggleLocker(mult[i], s);
+    walkIndex = 0;
+    currentStudent = s;
+    hideWalker();
+    updateStatus();
+  }
+
+  function onStep(){
+    if (currentStudent >= N) return;
+    stopPlaying();
+    finishCurrentStudentInstant();
+  }
+
+  function stopPlaying(){
+    playing = false;
+    playBtn.textContent = 'Play';
+  }
+
+  async function runPlayLoop(){
+    var token = ++playToken;
+    while (playing && currentStudent < N && token === playToken){
+      var s = currentStudent + 1;
+      var mult = multiplesOf(s);
+      if (walkIndex === 0) dequeue(s);
+      updateStatus();
+
+      while (walkIndex < mult.length && playing && token === playToken){
+        var n = mult[walkIndex];
+        moveWalkerTo(n);
+        await sleep(getSpeed() / 2);
+        if (!playing || token !== playToken) break;
+        toggleLocker(n, s);
+        await sleep(getSpeed() / 2);
+        walkIndex++;
+      }
+
+      if (walkIndex >= mult.length && playing && token === playToken){
+        currentStudent = s;
+        walkIndex = 0;
+        hideWalker();
+        updateStatus();
+      }
+    }
+    if (token === playToken){
+      playing = false;
+      playBtn.textContent = 'Play';
+      hideWalker();
+      updateStatus();
+    }
+  }
+
+  function onPlayToggle(){
+    if (currentStudent >= N) return;
+    if (playing){
+      stopPlaying();
+    } else {
+      playing = true;
+      playBtn.textContent = 'Pause';
+      runPlayLoop();
+    }
+  }
+
+  function onReset(){
+    playing = false;
+    playToken++;
+    initState();
+    buildQueue();
+    renderAllLockers();
+    hideWalker();
+    waitingCountEl.textContent = String(N);
+    updateStatus();
+  }
+
+  stepBtn.addEventListener('click', onStep);
+  playBtn.addEventListener('click', onPlayToggle);
+  resetBtn.addEventListener('click', onReset);
+
+  buildGrid();
+  buildQueue();
+  initState();
+  renderAllLockers();
+  updateStatus();
+})();
+</script>
